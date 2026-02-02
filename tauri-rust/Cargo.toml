@@ -1,0 +1,16 @@
+[package]
+name = "pot-cafe-pos"
+version = "0.1.0"
+description = "Pot Cafe Point of Sale System"
+authors = ["Pot Cafe"]
+license = ""
+repository = ""
+edition = "2021"
+
+[build-dependencies]
+tauri-build = { version = "1", features = [] }
+
+[dependencies]
+tauri = { version = "1", features = ["shell-open"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

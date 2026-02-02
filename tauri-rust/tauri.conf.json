@@ -1,0 +1,67 @@
+{
+  "build": {
+    "beforeBuildCommand": "npm run build --prefix /home/tsuna/Desktop/coding/cafe_pos/frontend",
+    "beforeDevCommand": "",
+    "devPath": "http://localhost:5173",
+    "distDir": "/home/tsuna/Desktop/coding/cafe_pos/frontend/build"
+  },
+  "package": {
+    "productName": "Pot Cafe POS",
+    "version": "0.1.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "shell": {
+        "all": false,
+        "open": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "category": "Business",
+      "copyright": "",
+      "deb": {
+        "depends": []
+      },
+      "externalBin": [],
+      "icon": [],
+      "identifier": "com.potcafe.pos",
+      "longDescription": "Pot Cafe Point of Sale System",
+      "macOS": {
+        "entitlements": null,
+        "exceptionDomain": "",
+        "frameworks": [],
+        "providerShortName": null,
+        "signingIdentity": null
+      },
+      "resources": [],
+      "shortDescription": "Pot Cafe POS",
+      "targets": "all",
+      "windows": {
+        "certificateThumbprint": null,
+        "digestAlgorithm": "sha256",
+        "timestampUrl": ""
+      }
+    },
+    "security": {
+      "csp": null
+    },
+    "updater": {
+      "active": false
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "height": 800,
+        "resizable": true,
+        "title": "Pot Cafe POS",
+        "width": 1280,
+        "center": true,
+        "decorations": true,
+        "minWidth": 1024,
+        "minHeight": 700
+      }
+    ]
+  }
+}
