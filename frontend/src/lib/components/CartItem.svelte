@@ -1,8 +1,8 @@
 <script lang="ts">
-    import type { CartItem } from "../stores";
+    import type { CartItem as CartItemType } from "../stores";
     import { cart } from "../stores";
 
-    export let entry: CartItem;
+    let { entry }: { entry: CartItemType } = $props();
 
     function increment() {
         cart.increment(entry.item.id);
@@ -23,14 +23,14 @@
         <span class="item-price">{entry.item.price}฿ × {entry.qty}</span>
     </div>
     <div class="item-controls">
-        <button class="qty-btn" on:click={decrement} aria-label="ลดจำนวน"
+        <button class="qty-btn" onclick={decrement} aria-label="ลดจำนวน"
             >−</button
         >
         <span class="qty">{entry.qty}</span>
-        <button class="qty-btn" on:click={increment} aria-label="เพิ่มจำนวน"
+        <button class="qty-btn" onclick={increment} aria-label="เพิ่มจำนวน"
             >+</button
         >
-        <button class="remove-btn" on:click={remove} aria-label="ลบ">✕</button>
+        <button class="remove-btn" onclick={remove} aria-label="ลบ">✕</button>
     </div>
     <div class="item-total">
         {entry.item.price * entry.qty}฿

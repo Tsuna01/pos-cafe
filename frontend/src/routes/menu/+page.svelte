@@ -2,7 +2,11 @@
     import Navbar from "$lib/components/Navbar.svelte";
     import ProductCard from "$lib/components/ProductCard.svelte";
     import CartItem from "$lib/components/CartItem.svelte";
-    import { categories, getMenuByCategory } from "$lib/data/menu";
+    import {
+        fetchCategories,
+        fetchMenuItems,
+        type Category,
+    } from "$lib/data/menu";
     import {
         cart,
         cartTotal,
@@ -11,15 +15,23 @@
         currentUser,
         selectedPaymentMethod,
         type PaymentMethod,
+        type MenuItem,
     } from "$lib/stores";
     import { onMount } from "svelte";
     import { goto } from "$app/navigation";
 
-    let showPaymentModal = false;
-    let showConfirmModal = false;
-    let orderNumber = 0;
+    let showPaymentModal = $state(false);
+    let showConfirmModal = $state(false);
+    let orderNumber = $state(0);
+    let invoke: any = null;
 
-    $: currentProducts = getMenuByCategory($selectedCategory);
+    // DB-driven data
+    let dbCategories = $state<Category[]>([]);
+    let currentProducts = $state<MenuItem[]>([]);
+
+    async function loadProducts(category: string) {
+        currentProducts = await fetchMenuItems(category);
+    }
 
     onMount(() => {
         // Check if user is logged in
@@ -28,11 +40,28 @@
                 goto("/");
             }
         });
+
+        // Load Tauri invoke
+        import("@tauri-apps/api/tauri")
+            .then((tauri) => {
+                invoke = tauri.invoke;
+            })
+            .catch(() => {
+                /* Browser mode */
+            });
+
+        // Load categories and initial products from DB
+        fetchCategories().then((cats) => {
+            dbCategories = cats;
+        });
+        loadProducts($selectedCategory);
+
         return unsubscribe;
     });
 
     function selectCategory(categoryId: string) {
         selectedCategory.set(categoryId);
+        loadProducts(categoryId);
     }
 
     function selectPayment(method: PaymentMethod) {
@@ -45,9 +74,42 @@
         }
     }
 
-    function confirmOrder() {
+    async function confirmOrder() {
         showPaymentModal = false;
-        orderNumber = Math.floor(Math.random() * 9000) + 1000;
+
+        if (invoke && $currentUser) {
+            try {
+                // Save order to SQLite via Tauri
+                const items = $cart.map((entry) => ({
+                    item_id: entry.item.id,
+                    item_name: entry.item.name,
+                    qty: entry.qty,
+                    price: entry.item.price,
+                }));
+
+                const result = await invoke("create_order", {
+                    items,
+                    total: $cartTotal,
+                    paymentMethod: $selectedPaymentMethod,
+                    cashierId: $currentUser.id,
+                    cashierName: $currentUser.name,
+                });
+
+                if (result.success) {
+                    orderNumber = result.order_number;
+                } else {
+                    orderNumber = Math.floor(Math.random() * 9000) + 1000;
+                    console.error("Order save failed:", result.error);
+                }
+            } catch (err) {
+                orderNumber = Math.floor(Math.random() * 9000) + 1000;
+                console.error("Order save error:", err);
+            }
+        } else {
+            // Browser fallback
+            orderNumber = Math.floor(Math.random() * 9000) + 1000;
+        }
+
         showConfirmModal = true;
     }
 
@@ -71,11 +133,11 @@
         <div class="products-section">
             <!-- Category Tabs -->
             <div class="category-tabs">
-                {#each categories as category}
+                {#each dbCategories as category}
                     <button
                         class="category-tab"
                         class:active={$selectedCategory === category.id}
-                        on:click={() => selectCategory(category.id)}
+                        onclick={() => selectCategory(category.id)}
                     >
                         <span class="tab-icon">{category.icon}</span>
                         <span class="tab-name">{category.name}</span>
@@ -129,7 +191,7 @@
                 <button
                     class="btn btn-success btn-lg checkout-btn"
                     disabled={$cartItemCount === 0}
-                    on:click={openPayment}
+                    onclick={openPayment}
                 >
                     ✓ ชำระเงิน
                 </button>
@@ -140,15 +202,20 @@
 
 <!-- Payment Modal -->
 {#if showPaymentModal}
+    <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
     <div
         class="modal-overlay"
-        on:click={() => (showPaymentModal = false)}
+        onclick={() => (showPaymentModal = false)}
+        onkeydown={(e) => e.key === "Escape" && (showPaymentModal = false)}
         role="dialog"
         aria-modal="true"
+        tabindex="-1"
     >
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
         <div
             class="modal payment-modal"
-            on:click|stopPropagation
+            onclick={(e) => e.stopPropagation()}
+            onkeydown={(e) => e.stopPropagation()}
             role="document"
         >
             <div class="modal-header">
@@ -166,7 +233,7 @@
                             class="payment-method"
                             class:selected={$selectedPaymentMethod ===
                                 method.id}
-                            on:click={() => selectPayment(method.id)}
+                            onclick={() => selectPayment(method.id)}
                         >
                             <span class="method-icon">{method.icon}</span>
                             <span class="method-name">{method.name}</span>
@@ -177,11 +244,11 @@
             <div class="modal-footer">
                 <button
                     class="btn btn-ghost"
-                    on:click={() => (showPaymentModal = false)}
+                    onclick={() => (showPaymentModal = false)}
                 >
                     ยกเลิก
                 </button>
-                <button class="btn btn-success" on:click={confirmOrder}>
+                <button class="btn btn-success" onclick={confirmOrder}>
                     ✓ ยืนยันการชำระ
                 </button>
             </div>
@@ -211,7 +278,7 @@
                 </div>
                 <button
                     class="btn btn-primary btn-lg"
-                    on:click={closeConfirmModal}
+                    onclick={closeConfirmModal}
                 >
                     รับออเดอร์ใหม่
                 </button>

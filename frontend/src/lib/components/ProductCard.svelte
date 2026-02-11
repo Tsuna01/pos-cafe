@@ -1,15 +1,15 @@
 <script lang="ts">
-    import type { MenuItem } from '../stores';
-    import { cart } from '../stores';
+    import type { MenuItem } from "../stores";
+    import { cart } from "../stores";
 
-    export let item: MenuItem;
+    let { item }: { item: MenuItem } = $props();
 
     function handleAdd() {
         cart.add(item);
     }
 </script>
 
-<button class="product-card" on:click={handleAdd}>
+<button class="product-card" onclick={handleAdd}>
     <div class="card-image">
         <img src={item.image} alt={item.name} loading="lazy" />
     </div>
@@ -40,7 +40,9 @@
     .product-card:hover {
         border-color: var(--color-primary);
         transform: translateY(-4px);
-        box-shadow: var(--shadow-lg), 0 0 20px rgba(196, 167, 125, 0.15);
+        box-shadow:
+            var(--shadow-lg),
+            0 0 20px rgba(196, 167, 125, 0.15);
     }
 
     .product-card:active {

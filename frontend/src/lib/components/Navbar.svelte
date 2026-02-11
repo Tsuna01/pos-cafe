@@ -1,7 +1,10 @@
 <script lang="ts">
     import { currentUser } from "../stores";
+    import { page } from "$app/stores";
 
-    export let title: string = "Pot Cafe";
+    let { title = "Pot Cafe" }: { title?: string } = $props();
+
+    let isSettingsPage = $derived($page.url.pathname.startsWith("/settings"));
 
     function handleLogout() {
         currentUser.logout();
@@ -17,6 +20,11 @@
 
     {#if $currentUser}
         <div class="navbar-user">
+            {#if !isSettingsPage}
+                <a href="/settings" class="settings-btn" title="ตั้งค่าระบบ">
+                    ⚙️
+                </a>
+            {/if}
             <div class="user-info">
                 <span class="user-avatar">👤</span>
                 <span class="user-name">{$currentUser.name}</span>
@@ -26,7 +34,7 @@
                         : "พนักงาน"}</span
                 >
             </div>
-            <button class="btn btn-ghost btn-sm" on:click={handleLogout}>
+            <button class="btn btn-ghost btn-sm" onclick={handleLogout}>
                 ออกจากระบบ
             </button>
         </div>
@@ -90,5 +98,23 @@
         padding: var(--space-1) var(--space-2);
         background: var(--color-bg-hover);
         border-radius: var(--radius-full);
+    }
+
+    .settings-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background: var(--color-bg-tertiary);
+        border-radius: var(--radius-md);
+        font-size: 1.25rem;
+        text-decoration: none;
+        transition: all var(--transition-fast);
+    }
+
+    .settings-btn:hover {
+        background: var(--color-bg-hover);
+        transform: rotate(45deg);
     }
 </style>

@@ -1,6 +1,5 @@
 import { writable, derived } from 'svelte/store';
 
-// Types
 export interface MenuItem {
     id: number;
     name: string;
@@ -22,7 +21,6 @@ export interface User {
     role: 'admin' | 'cashier';
 }
 
-// Cart Store
 function createCartStore() {
     const { subscribe, set, update } = writable<CartItem[]>([]);
 
@@ -81,7 +79,6 @@ function createCartStore() {
 
 export const cart = createCartStore();
 
-// Derived cart totals
 export const cartTotal = derived(cart, $cart =>
     $cart.reduce((sum, c) => sum + c.item.price * c.qty, 0)
 );
@@ -90,7 +87,6 @@ export const cartItemCount = derived(cart, $cart =>
     $cart.reduce((sum, c) => sum + c.qty, 0)
 );
 
-// User/Auth Store
 function createUserStore() {
     const { subscribe, set } = writable<User | null>(null);
 
@@ -103,9 +99,8 @@ function createUserStore() {
 
 export const currentUser = createUserStore();
 
-// Selected Category Store
 export const selectedCategory = writable<string>('coffee');
 
-// Payment Method Store
 export type PaymentMethod = 'cash' | 'promptpay' | 'card';
+
 export const selectedPaymentMethod = writable<PaymentMethod>('cash');

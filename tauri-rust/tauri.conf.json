@@ -1,9 +1,9 @@
 {
   "build": {
-    "beforeBuildCommand": "npm run build --prefix /home/tsuna/Desktop/coding/cafe_pos/frontend",
+    "beforeBuildCommand": "npm run build --prefix /home/tsuna/Desktop/coding/pos-cafe/frontend",
     "beforeDevCommand": "",
     "devPath": "http://localhost:5173",
-    "distDir": "/home/tsuna/Desktop/coding/cafe_pos/frontend/build"
+    "distDir": "/home/tsuna/Desktop/coding/pos-cafe/frontend/build"
   },
   "package": {
     "productName": "Pot Cafe POS",
@@ -22,7 +22,12 @@
       "category": "Business",
       "copyright": "",
       "deb": {
-        "depends": []
+        "depends": [
+          "libwebkit2gtk-4.1-0",
+          "libgtk-3-0",
+          "libayatana-appindicator3-1",
+          "librsvg2-common"
+        ]
       },
       "externalBin": [],
       "icon": [],
@@ -53,6 +58,7 @@
     "windows": [
       {
         "fullscreen": false,
+        "maximized": true,
         "height": 800,
         "resizable": true,
         "title": "Pot Cafe POS",

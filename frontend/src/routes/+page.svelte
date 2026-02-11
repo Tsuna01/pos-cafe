@@ -1,11 +1,22 @@
 <script lang="ts">
     import { currentUser } from "$lib/stores";
     import { goto } from "$app/navigation";
+    import { onMount } from "svelte";
 
-    let userId = "";
-    let password = "";
-    let error = "";
-    let isLoading = false;
+    let userId = $state("");
+    let password = $state("");
+    let error = $state("");
+    let isLoading = $state(false);
+    let invoke: any = null;
+
+    onMount(async () => {
+        try {
+            const tauri = await import("@tauri-apps/api/tauri");
+            invoke = tauri.invoke;
+        } catch {
+            // Running in browser — will use fallback
+        }
+    });
 
     async function handleLogin(e: Event) {
         e.preventDefault();
@@ -22,18 +33,42 @@
 
         isLoading = true;
 
-        // Simulate login (in production, call API)
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        try {
+            if (invoke) {
+                // Real authentication via Tauri/SQLite
+                const result = await invoke("login", {
+                    userId: userId.trim(),
+                    password: password.trim(),
+                });
 
-        // Demo login - accept any credentials
-        currentUser.login({
-            id: userId,
-            name: userId === "admin" ? "ผู้ดูแลระบบ" : `พนักงาน ${userId}`,
-            role: userId === "admin" ? "admin" : "cashier",
-        });
-
-        isLoading = false;
-        goto("/menu");
+                if (result.success && result.user) {
+                    currentUser.login({
+                        id: result.user.id,
+                        name: result.user.name,
+                        role: result.user.role as "admin" | "cashier",
+                    });
+                    goto("/menu");
+                } else {
+                    error = result.error || "เข้าสู่ระบบไม่สำเร็จ";
+                }
+            } else {
+                // Fallback for browser testing
+                await new Promise((resolve) => setTimeout(resolve, 500));
+                currentUser.login({
+                    id: userId,
+                    name:
+                        userId === "admin"
+                            ? "ผู้ดูแลระบบ"
+                            : `พนักงาน ${userId}`,
+                    role: userId === "admin" ? "admin" : "cashier",
+                });
+                goto("/menu");
+            }
+        } catch (err: any) {
+            error = err?.message || "เกิดข้อผิดพลาดในการเข้าสู่ระบบ";
+        } finally {
+            isLoading = false;
+        }
     }
 </script>
 
@@ -52,7 +87,7 @@
             <p>ระบบจัดการร้านกาแฟ</p>
         </div>
 
-        <form class="login-form" on:submit={handleLogin}>
+        <form class="login-form" onsubmit={handleLogin}>
             {#if error}
                 <div class="error-message animate-fade-in">
                     <span>⚠️</span>
